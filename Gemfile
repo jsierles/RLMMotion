@@ -2,4 +2,4 @@ source 'https://rubygems.org'
 
 gem 'rake'
 gem 'motion-cocoapods'
-# Add your dependencies here:
+gem 'cocoapods', '>= 0.36.0.beta.2'

@@ -10,14 +10,16 @@ class AppDelegate
     @window.rootViewController = navigationController
     @window.makeKeyAndVisible
 
-    File.delete(RLMRealm.defaultRealmPath)
+    p Realm.defaultRealmPath
+    File.delete(Realm.defaultRealmPath) if File.exist?(Realm.defaultRealmPath)
 
-    realm = Realm.default
+    realm = Realm.defaultRealm
     realm.beginWriteTransaction
-    p realm.createObject('Model', withObject: [2])
+    model = realm.createObject('Model', withObject: [2, nil])
+    model.link = realm.createObject('Model', withObject: [10, model])
     realm.commitWriteTransaction
 
-    p realm.allObjects('Model')
+    puts realm.allObjects('Model').description
 
     true
   end

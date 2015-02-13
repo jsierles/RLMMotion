@@ -4,9 +4,19 @@ PODS:
   - Realm/Headers (0.90.5)
 
 DEPENDENCIES:
-  - Realm
+  - Realm (from `https://github.com/Realm/realm-cocoa.git`, branch `seg-customizable-schemas`)
+
+EXTERNAL SOURCES:
+  Realm:
+    :branch: seg-customizable-schemas
+    :git: https://github.com/Realm/realm-cocoa.git
+
+CHECKOUT OPTIONS:
+  Realm:
+    :commit: c28a6a4b4668bc78decf2c42fe8875616d217c3b
+    :git: https://github.com/Realm/realm-cocoa.git
 
 SPEC CHECKSUMS:
-  Realm: aea25534b97be77995650c2339aa6ed010dfcc8a
+  Realm: 9076475e7ea3b4baf9fd90a4aa965256cf4ecd7b
 
-COCOAPODS: 0.35.0
+COCOAPODS: 0.36.0.beta.2

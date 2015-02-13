@@ -1,65 +1,46 @@
-class Realm
-  private
+Realm = RLMRealm
+Results = RLMResults
+RealmArray = RLMArray
 
-  attr_accessor :rlm_realm
+[Results, RealmArray].each { |k| k.send(:include, Enumerable) }
 
-  public
+class RealmObject < RLMObject
+  class << self
+    PROPERTY_TYPES = {
+      Integer => RLMPropertyTypeInt
+    }.freeze
 
-  def initialize(path, key = nil, read_only = false)
-    schema = RLMSchema.new
-    schema.objectSchema = RealmObject.klasses.map do |klass|
-      RLMObjectSchema.alloc.initWithClassName(klass.name, objectClass: RLMObjectBase, properties: klass.realm_properties)
-    end
-    @rlm_realm = RLMRealm.realmWithPath(path, key: key, readOnly: read_only, inMemory: false, dynamic: true, schema: schema, error: nil)
-  end
-
-  def self.default
-    new(RLMRealm.defaultRealmPath)
-  end
-
-  def method_missing(method, *args, &block)
-    rlm_realm.respond_to?(method) ? rlm_realm.send(method, *args, &block) : super
-  end
-end
-
-# class RealmObject < RLMObjectBase
-#   unless self == RealmObject
-#     klasses < self
-#   end
-#
-#   class << self
-#     def realm_properties
-#       @realm_properties ||= []
-#     end
-#
-#     def realm_attr_accessor(name, type, opts = {})
-#       realm_properties << RLMProperty.alloc.initWithName(name, type: RLMPropertyTypeInt, objectClassName: nil, indexed: false)
-#     end
-#
-#     private def klasses
-#       @klasses ||= []
-#     end
-#   end
-# end
-
-module RealmObject
-  module ClassMethods
     def realm_properties
       @realm_properties ||= []
     end
 
     def realm_attr_accessor(name, type, opts = {})
-      RLMProperty.alloc.init
-      realm_properties << RLMProperty.alloc.initWithName(name, type: RLMPropertyTypeInt, objectClassName: nil, attributes: 0)
+      object_class_name = type.name if type < RealmObject
+      raise 'Must give a type' unless PROPERTY_TYPES.keys.include?(type) || type < RealmObject
+      type = PROPERTY_TYPES[type]
+      indexed = opts[:indexed] || false
+
+      if opts[:primary]
+        define_method(:primaryKey) do
+          name
+        end
+      end
+      type = RLMPropertyArray if !type && opts[:to_many]
+      type = RLMPropertyTypeObject if object_class_name
+      property = RLMProperty.alloc.initWithName(name, type: type, objectClassName: object_class_name, indexed: indexed)
+      realm_properties << property
     end
-  end
 
-  def self.included(base)
-    base.extend(ClassMethods)
-    klasses << base if base.is_a?(Class)
-  end
+    private def klasses
+      @klasses ||= []
+    end
 
-  def self.klasses
-    @klasses ||= []
+    def createSharedSchema
+      self == RealmObject ? nil : super
+    end
+
+    def objectSchemaProperties(isSwift)
+      return self.realm_properties
+    end
   end
 end
